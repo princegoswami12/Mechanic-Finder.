@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mechanic Finder</title>
+
+```
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+<!-- Geocoder CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css">
+
+<!-- Custom CSS -->
+<link rel="stylesheet" href="style.css">
+```
+
+</head>
+
+<body>
+
+```
+<div class="header">
+    <h1>🔧 Mechanic Finder</h1>
+    <p>Find Nearby Mechanics Anytime, Anywhere</p>
+</div>
+
+<p id="time"></p>
+
+<button class="emergency-btn" onclick="callEmergency()">
+    🚨 Emergency Help
+</button>
+
+<div id="map">📍 Loading Map...</div>
+
+<button onclick="getLocation()">📍 Use My Location</button>
+
+<p id="location">Location not detected</p>
+
+<h3>Select Vehicle</h3>
+<select id="vehicle">
+    <option>Bike</option>
+    <option>Car</option>
+</select>
+
+<h3>Select Problem</h3>
+<select id="problem">
+    <option>Puncture</option>
+    <option>Battery Problem</option>
+    <option>Engine Problem</option>
+    <option>Fuel Finished</option>
+</select>
+
+<button onclick="findMechanic()">🔍 Find Mechanic</button>
+
+<div id="loading">
+    🔍 Searching Nearby Mechanics...
+</div>
+
+<div id="result"></div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- Geocoder JS -->
+<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
+<script>
+
+    let map;
+    let marker;
+
+    // Live Time
+    setInterval(() => {
+        document.getElementById("time").innerHTML =
+            "🕒 " + new Date().toLocaleString();
+    }, 1000);
+
+    // Emergency Call
+    function callEmergency() {
+        window.location.href = "tel:112";
+    }
+
+    // Show Map
+    function showMap(lat, lng) {
+
+        if (!map) {
+
+            map = L.map('map').setView([lat, lng], 15);
+
+            L.tileLayer(
+                'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                {
+                    attribution: '© OpenStreetMap'
+                }
+            ).addTo(map);
+
+            L.Control.geocoder({
+                defaultMarkGeocode: true
+            }).addTo(map);
+        }
+
+        if (marker) {
+            marker.remove();
+        }
+
+        marker = L.marker([lat, lng])
+            .addTo(map)
+            .bindPopup("📍 You are here")
+            .openPopup();
+
+        map.setView([lat, lng], 15);
+    }
+
+    // Get User Location
+    function getLocation() {
+
+        navigator.geolocation.getCurrentPosition(
+
+            function(position) {
+
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+
+                document.getElementById("location").innerHTML =
+                    "Latitude: " + lat +
+                    "<br>Longitude: " + lng;
+
+                showMap(lat, lng);
+            },
+
+            function() {
+                alert("❌ Location permission denied");
+            }
+
+        );
+    }
+
+    // Find Mechanics
+    function findMechanic() {
+
+        const vehicle =
+            document.getElementById("vehicle").value;
+
+        const problem =
+            document.getElementById("problem").value;
+
+        document.getElementById("loading").style.display = "block";
+
+        setTimeout(() => {
+
+            document.getElementById("loading").style.display = "none";
+
+            document.getElementById("result").innerHTML = `
+
+            <h2>🔧 Nearby Mechanics</h2>
+
+            <div class="card">
+
+                <img src="https://images.unsplash.com/photo-1487754180451-c456f719a1fc?w=600">
+
+                <h3>Ravi Auto Service</h3>
+
+                <p>⭐ Rating: 4.8/5</p>
+                <p>🚗 Vehicle: ${vehicle}</p>
+                <p>⚠️ Problem: ${problem}</p>
+                <p>📍 Distance: 1.2 KM</p>
+                <p>⏱ Arrival Time: 15 Minutes</p>
+                <p>💰 Estimated Cost: ₹300 - ₹500</p>
+
+               <div style="display:flex;gap:10px;flex-wrap:wrap;">
+
+    <a href="tel:9998887777">
+        <button>📞 Call</button>
+    </a>
+
+    <a href="https://wa.me/919998887777" target="_blank">
+        <button>💬 WhatsApp</button>
+    </a>
+
+    <a href="https://maps.google.com/?q=25.3176,82.9739" target="_blank">
+        <button>📍 Direction</button>
+    </a>
+
+</div>
+
+            </div>
+
+            <div class="card">
+
+                <img src="https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=600">
+
+                <h3>Sharma Garage</h3>
+
+                <p>⭐ Rating: 4.6/5</p>
+                <p>🚗 Vehicle: ${vehicle}</p>
+                <p>⚠️ Problem: ${problem}</p>
+                <p>📍 Distance: 2.5 KM</p>
+                <p>⏱ Arrival Time: 20 Minutes</p>
+                <p>💰 Estimated Cost: ₹400 - ₹700</p>
+
+                <a href="tel:9876543211">
+                    <button>📞 Call</button>
+                </a>
+
+            </div>
+
+            `;
+        }, 2000);
+    }
+
+</script>
+```
+
+</body>
+</html>
