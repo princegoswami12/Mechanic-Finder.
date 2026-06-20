@@ -15,7 +15,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/fireba
 import { getFirestore, doc, updateDoc, onSnapshot } 
 from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// 🔥 YOUR FIREBASE CONFIG (yaha apna paste karna)
+// 🔥 FIREBASE CONFIG
 const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
   authDomain: "YOUR_AUTH_DOMAIN",
@@ -28,13 +28,11 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// 🚀 LIVE LOCATION SEND (Mechanic side)
+// 🚀 LIVE GPS SEND (Mechanic phone)
 navigator.geolocation.watchPosition(async (pos) => {
 
   const lat = pos.coords.latitude;
   const lng = pos.coords.longitude;
-
-  console.log("Live Location:", lat, lng);
 
   try {
     await updateDoc(doc(db, "mechanics", "mechanic1"), {
@@ -42,12 +40,12 @@ navigator.geolocation.watchPosition(async (pos) => {
       lng: lng
     });
   } catch(e){
-    console.log("Firebase update error:", e);
+    console.log(e);
   }
 
 });
 
-// 👀 LIVE TRACKING LISTENER (User side)
+// 👀 LIVE LISTENER (User side)
 onSnapshot(doc(db, "mechanics", "mechanic1"), (snap) => {
 
   const data = snap.data();
@@ -56,10 +54,8 @@ onSnapshot(doc(db, "mechanics", "mechanic1"), (snap) => {
   document.getElementById("location").innerHTML =
   "📍 LIVE LOCATION:<br>Lat: " + data.lat + "<br>Lng: " + data.lng;
 
-  // Map update
-  if(typeof showMap === "function"){
-    showMap(data.lat, data.lng);
-  }
+  showMap(data.lat, data.lng);
+  updateRoute(data.lat, data.lng);
 
 });
 
@@ -70,17 +66,14 @@ onSnapshot(doc(db, "mechanics", "mechanic1"), (snap) => {
 <body>
 
 <div class="header">
-    <h1>🔧 Mechanic Finder Pro</h1>
-    <p>Find Nearby Mechanics Anytime, Anywhere</p>
-
-    <button onclick="toggleDarkMode()">🌙 Dark Mode</button>
+<h1>🔧 Mechanic Finder Pro</h1>
+<p>Find Nearby Mechanics Anytime, Anywhere</p>
+<button onclick="toggleDarkMode()">🌙 Dark Mode</button>
 </div>
 
 <p id="time"></p>
 
-<button class="emergency-btn" onclick="callEmergency()">
-🚨 Emergency Help
-</button>
+<button class="emergency-btn" onclick="callEmergency()">🚨 Emergency Help</button>
 
 <div id="map"></div>
 
@@ -88,8 +81,7 @@ onSnapshot(doc(db, "mechanics", "mechanic1"), (snap) => {
 
 <p id="location">Location not detected</p>
 
-<input type="text" id="searchBox"
-placeholder="🔍 Search Mechanic Name">
+<input type="text" id="searchBox" placeholder="🔍 Search Mechanic Name">
 
 <h3>Select Vehicle</h3>
 
@@ -110,9 +102,7 @@ placeholder="🔍 Search Mechanic Name">
 <option>Fuel Finished</option>
 </select>
 
-<button onclick="findMechanic()">
-🔍 Find Mechanic
-</button>
+<button onclick="findMechanic()">🔍 Find Mechanic</button>
 
 <div id="loading">🔍 Searching Nearby Mechanics...</div>
 
@@ -123,9 +113,7 @@ placeholder="🔍 Search Mechanic Name">
 <h2>💰 Cost Calculator</h2>
 
 <input type="number" id="km" placeholder="Distance in KM">
-
 <button onclick="calcCost()">Calculate Cost</button>
-
 <p id="cost"></p>
 
 <hr>
@@ -133,11 +121,9 @@ placeholder="🔍 Search Mechanic Name">
 <h2>🏪 Add Your Garage</h2>
 
 <input type="text" id="garageName" placeholder="Garage Name">
-
 <input type="text" id="phone" placeholder="Phone Number">
 
 <button onclick="addGarage()">➕ Add Garage</button>
-
 <div id="garageList"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -147,35 +133,14 @@ placeholder="🔍 Search Mechanic Name">
 
 let map;
 let marker;
+let routeLine;
+let routePoints = [];
 
-const mechanics = [
-{
-name:"Ravi Auto Service",
-rating:"4.8",
-distance:"1.2 KM",
-phone:"9554230944",
-cost:"₹300 - ₹500",
-image:"https://images.unsplash.com/photo-1487754180451-c456f719a1fc?w=600"
-},
-];
-
-setInterval(()=>{
-document.getElementById("time").innerHTML=
-"🕒 "+new Date().toLocaleString();
-},1000);
-
-function toggleDarkMode(){
-document.body.classList.toggle("dark");
-}
-
-function callEmergency(){
-window.location.href="tel:112";
-}
-
+// 🗺️ MAP FUNCTION
 function showMap(lat,lng){
 
 if(!map){
-map=L.map('map').setView([lat,lng],15);
+map = L.map('map').setView([lat,lng],15);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
 attribution:'© OpenStreetMap'
@@ -188,12 +153,41 @@ if(marker){
 marker.remove();
 }
 
-marker=L.marker([lat,lng])
+marker = L.marker([lat,lng])
 .addTo(map)
 .bindPopup("📍 Live Location")
 .openPopup();
 
 map.setView([lat,lng],15);
+}
+
+// 🔥 ROUTE TRACKING (REAL PATH)
+function updateRoute(lat,lng){
+
+routePoints.push([lat,lng]);
+
+if(routeLine){
+routeLine.remove();
+}
+
+routeLine = L.polyline(routePoints,{
+color:"blue",
+weight:4
+}).addTo(map);
+}
+
+// TIME
+setInterval(()=>{
+document.getElementById("time").innerHTML="🕒 "+new Date().toLocaleString();
+},1000);
+
+// UI FUNCTIONS
+function toggleDarkMode(){
+document.body.classList.toggle("dark");
+}
+
+function callEmergency(){
+window.location.href="tel:112";
 }
 
 function getLocation(){
