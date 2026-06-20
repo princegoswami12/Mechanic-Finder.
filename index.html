@@ -3,11 +3,68 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mechanic Finder Pro</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css">
 <link rel="stylesheet" href="style.css">
+
+<!-- 🔥 FIREBASE -->
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, updateDoc, onSnapshot } 
+from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// 🔥 YOUR FIREBASE CONFIG (yaha apna paste karna)
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_STORAGE_BUCKET",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// 🚀 LIVE LOCATION SEND (Mechanic side)
+navigator.geolocation.watchPosition(async (pos) => {
+
+  const lat = pos.coords.latitude;
+  const lng = pos.coords.longitude;
+
+  console.log("Live Location:", lat, lng);
+
+  try {
+    await updateDoc(doc(db, "mechanics", "mechanic1"), {
+      lat: lat,
+      lng: lng
+    });
+  } catch(e){
+    console.log("Firebase update error:", e);
+  }
+
+});
+
+// 👀 LIVE TRACKING LISTENER (User side)
+onSnapshot(doc(db, "mechanics", "mechanic1"), (snap) => {
+
+  const data = snap.data();
+  if(!data) return;
+
+  document.getElementById("location").innerHTML =
+  "📍 LIVE LOCATION:<br>Lat: " + data.lat + "<br>Lng: " + data.lng;
+
+  // Map update
+  if(typeof showMap === "function"){
+    showMap(data.lat, data.lng);
+  }
+
+});
+
+</script>
+
 </head>
 
 <body>
@@ -57,9 +114,7 @@ placeholder="🔍 Search Mechanic Name">
 🔍 Find Mechanic
 </button>
 
-<div id="loading">
-🔍 Searching Nearby Mechanics...
-</div>
+<div id="loading">🔍 Searching Nearby Mechanics...</div>
 
 <div id="result"></div>
 
@@ -67,13 +122,9 @@ placeholder="🔍 Search Mechanic Name">
 
 <h2>💰 Cost Calculator</h2>
 
-<input type="number"
-id="km"
-placeholder="Distance in KM">
+<input type="number" id="km" placeholder="Distance in KM">
 
-<button onclick="calcCost()">
-Calculate Cost
-</button>
+<button onclick="calcCost()">Calculate Cost</button>
 
 <p id="cost"></p>
 
@@ -81,17 +132,11 @@ Calculate Cost
 
 <h2>🏪 Add Your Garage</h2>
 
-<input type="text"
-id="garageName"
-placeholder="Garage Name">
+<input type="text" id="garageName" placeholder="Garage Name">
 
-<input type="text"
-id="phone"
-placeholder="Phone Number">
+<input type="text" id="phone" placeholder="Phone Number">
 
-<button onclick="addGarage()">
-➕ Add Garage
-</button>
+<button onclick="addGarage()">➕ Add Garage</button>
 
 <div id="garageList"></div>
 
@@ -112,7 +157,6 @@ phone:"9554230944",
 cost:"₹300 - ₹500",
 image:"https://images.unsplash.com/photo-1487754180451-c456f719a1fc?w=600"
 },
-
 ];
 
 setInterval(()=>{
@@ -131,15 +175,11 @@ window.location.href="tel:112";
 function showMap(lat,lng){
 
 if(!map){
-
 map=L.map('map').setView([lat,lng],15);
 
-L.tileLayer(
-'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-{
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
 attribution:'© OpenStreetMap'
-}
-).addTo(map);
+}).addTo(map);
 
 L.Control.geocoder().addTo(map);
 }
@@ -150,7 +190,7 @@ marker.remove();
 
 marker=L.marker([lat,lng])
 .addTo(map)
-.bindPopup("📍 You are here")
+.bindPopup("📍 Live Location")
 .openPopup();
 
 map.setView([lat,lng],15);
@@ -158,9 +198,7 @@ map.setView([lat,lng],15);
 
 function getLocation(){
 
-navigator.geolocation.getCurrentPosition(
-
-function(position){
+navigator.geolocation.getCurrentPosition(function(position){
 
 const lat=position.coords.latitude;
 const lng=position.coords.longitude;
@@ -169,13 +207,8 @@ document.getElementById("location").innerHTML=
 "Latitude: "+lat+"<br>Longitude: "+lng;
 
 showMap(lat,lng);
-},
 
-function(){
-alert("Location permission denied");
-}
-
-);
+});
 }
 
 function findMechanic(){
@@ -194,36 +227,23 @@ let html="<h2>🔧 Nearby Mechanics</h2>";
 
 mechanics.forEach(m=>{
 
-if(
-search==="" ||
-m.name.toLowerCase().includes(search)
-){
-
-let hour=new Date().getHours();
-
-let status=
-(hour>=8 && hour<=20)
-? "🟢 Open"
-: "🔴 Closed";
+if(search==="" || m.name.toLowerCase().includes(search)){
 
 html+=`
 <div class="card">
-<img src="${m.image}" alt="${m.name}">
+<img src="${m.image}">
 <h3>${m.name}</h3>
-
-<p>⭐ Rating: ${m.rating}/5</p>
-<p>${status}</p>
-<p>🚗 Vehicle: ${vehicle}</p>
-<p>⚠️ Problem: ${problem}</p>
-<p>📍 Distance: ${m.distance}</p>
-<p>💰 Estimated Cost: ${m.cost}</p>
+<p>⭐ ${m.rating}</p>
+<p>🚗 ${vehicle}</p>
+<p>⚠️ ${problem}</p>
+<p>📍 ${m.distance}</p>
+<p>💰 ${m.cost}</p>
 
 <a href="tel:${m.phone}">
 <button>📞 Call</button>
 </a>
 
-<a href="https://wa.me/${m.phone}"
-target="_blank">
+<a href="https://wa.me/${m.phone}" target="_blank">
 <button>💬 WhatsApp</button>
 </a>
 
@@ -235,38 +255,24 @@ target="_blank">
 
 document.getElementById("result").innerHTML=html;
 
-},2000);
+},1500);
 }
 
 function calcCost(){
-
 let km=document.getElementById("km").value;
-
 let cost=200+(km*10);
-
-document.getElementById("cost").innerHTML=
-"Estimated Cost: ₹"+cost;
+document.getElementById("cost").innerHTML="₹"+cost;
 }
 
 function addGarage(){
-
-let name=
-document.getElementById("garageName").value;
-
-let phone=
-document.getElementById("phone").value;
+let name=document.getElementById("garageName").value;
+let phone=document.getElementById("phone").value;
 
 document.getElementById("garageList").innerHTML+=`
-
 <div class="card">
-
 <h3>${name}</h3>
-
-<p>📞 ${phone}</p>
-
-</div>
-
-`;
+<p>${phone}</p>
+</div>`;
 }
 
 </script>
