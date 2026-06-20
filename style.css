@@ -1,52 +1,148 @@
 body{
-font-family:Arial;
-background:#f4f4f4;
-margin:0;
-padding:10px;
+  font-family: Arial, sans-serif;
+  background:#f4f6f9;
+  margin:0;
+  padding:10px;
+  color:#222;
 }
 
+/* HEADER */
 .header{
-background:#0d47a1;
-color:white;
-padding:15px;
-text-align:center;
-border-radius:10px;
+  background: linear-gradient(135deg,#0d47a1,#1976d2);
+  color:white;
+  padding:15px;
+  text-align:center;
+  border-radius:12px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.2);
 }
 
+/* TIME */
+#time{
+  text-align:center;
+  font-weight:bold;
+  margin:10px 0;
+  color:#444;
+}
+
+/* MAP */
 #map{
-height:300px;
-width:100%;
-border-radius:10px;
-margin-top:10px;
-border:2px solid #0d47a1;
+  height:320px;
+  width:100%;
+  border-radius:12px;
+  margin-top:10px;
+  border:3px solid #0d47a1;
+  box-shadow:0 3px 10px rgba(0,0,0,0.2);
 }
 
+/* INPUTS */
 input,select{
-width:95%;
-padding:8px;
-margin:5px 0;
-border-radius:6px;
-border:1px solid #ccc;
+  width:95%;
+  padding:10px;
+  margin:6px 0;
+  border-radius:8px;
+  border:1px solid #ccc;
+  outline:none;
+  font-size:14px;
 }
 
+/* BUTTONS */
 button{
-background:#0d47a1;
-color:white;
-border:none;
-padding:8px 12px;
-margin:5px;
-border-radius:6px;
-cursor:pointer;
+  background:#0d47a1;
+  color:white;
+  border:none;
+  padding:10px 14px;
+  margin:6px 3px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:14px;
+  transition:0.3s;
 }
 
 button:hover{
-background:#1565c0;
+  background:#1565c0;
+  transform:scale(1.03);
 }
 
+/* EMERGENCY BUTTON (optional class) */
+.emergency-btn{
+  background:red;
+  color:white;
+  width:100%;
+  font-weight:bold;
+}
+
+/* CARDS */
 .card{
-background:white;
-padding:10px;
-margin:10px 0;
-border-radius:10px;
-box-shadow:0 2px 8px rgba(0,0,0,0.2);
+  background:white;
+  padding:12px;
+  margin:12px 0;
+  border-radius:12px;
+  box-shadow:0 3px 10px rgba(0,0,0,0.15);
+}
+
+.card img{
+  width:100%;
+  border-radius:10px;
+}
+
+/* LOCATION BOX */
+#location{
+  background:#fff3cd;
+  padding:10px;
+  border-radius:8px;
+  margin:10px 0;
+  font-weight:bold;
+}
+
+/* LOADING */
+#loading{
+  display:none;
+  text-align:center;
+  font-weight:bold;
+  color:#0d47a1;
+}
+
+/* RESULT */
+#result{
+  margin-top:10px;
+}
+
+/* GARAGE LIST */
+#garageList{
+  margin-top:10px;
+}
+
+/* DARK MODE */
+.dark{
+  background:#121212;
+  color:white;
+}
+
+.dark .header{
+  background:#1e1e1e;
+}
+
+.dark .card{
+  background:#1f1f1f;
+  color:white;
+}
+
+.dark input,
+.dark select{
+  background:#2a2a2a;
+  color:white;
+  border:1px solid #444;
+}
+
+.dark #location{
+  background:#333;
+  color:white;
+}
+
+.dark button{
+  background:#333;
+}
+
+.dark button:hover{
+  background:#555;
 }
