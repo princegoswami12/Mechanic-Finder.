@@ -135,6 +135,16 @@ let map;
 let marker;
 let routeLine;
 let routePoints = [];
+  const mechanics = [
+{
+  name: "Ravi Auto Service",
+  rating: "4.8",
+  distance: "1.2 KM",
+  phone: "9554230944",
+  cost: "₹300 - ₹500",
+  image: "https://images.unsplash.com/photo-1487754180451-c456f719a1fc?w=600"
+}
+];
 
 // 🗺️ MAP FUNCTION
 function showMap(lat,lng){
@@ -237,7 +247,7 @@ html+=`
 <button>📞 Call</button>
 </a>
 
-<a href="https://wa.me/91${m.phone}" target="_blank">
+<a href="https://wa.me/${"91" + m.phone}" target="_blank">
 <button>💬 WhatsApp</button>
 </a>
 
