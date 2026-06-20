@@ -1,218 +1,280 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mechanic Finder</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mechanic Finder Pro</title>
 
-```
-<!-- Leaflet CSS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-
-<!-- Geocoder CSS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css">
-
-<!-- Custom CSS -->
 <link rel="stylesheet" href="style.css">
-```
-
 </head>
 
 <body>
 
-```
 <div class="header">
-    <h1>🔧 Mechanic Finder</h1>
+    <h1>🔧 Mechanic Finder Pro</h1>
     <p>Find Nearby Mechanics Anytime, Anywhere</p>
+
+    <button onclick="toggleDarkMode()">🌙 Dark Mode</button>
 </div>
 
 <p id="time"></p>
 
 <button class="emergency-btn" onclick="callEmergency()">
-    🚨 Emergency Help
+🚨 Emergency Help
 </button>
 
-<div id="map">📍 Loading Map...</div>
+<div id="map"></div>
 
 <button onclick="getLocation()">📍 Use My Location</button>
 
 <p id="location">Location not detected</p>
 
+<input type="text" id="searchBox"
+placeholder="🔍 Search Mechanic Name">
+
 <h3>Select Vehicle</h3>
+
 <select id="vehicle">
-    <option>Bike</option>
-    <option>Car</option>
+<option>Bike</option>
+<option>Car</option>
+<option>Truck</option>
+<option>Bus</option>
+<option>EV Vehicle</option>
 </select>
 
 <h3>Select Problem</h3>
+
 <select id="problem">
-    <option>Puncture</option>
-    <option>Battery Problem</option>
-    <option>Engine Problem</option>
-    <option>Fuel Finished</option>
+<option>Puncture</option>
+<option>Battery Problem</option>
+<option>Engine Problem</option>
+<option>Fuel Finished</option>
 </select>
 
-<button onclick="findMechanic()">🔍 Find Mechanic</button>
+<button onclick="findMechanic()">
+🔍 Find Mechanic
+</button>
 
 <div id="loading">
-    🔍 Searching Nearby Mechanics...
+🔍 Searching Nearby Mechanics...
 </div>
 
 <div id="result"></div>
 
-<!-- Leaflet JS -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<hr>
 
-<!-- Geocoder JS -->
+<h2>💰 Cost Calculator</h2>
+
+<input type="number"
+id="km"
+placeholder="Distance in KM">
+
+<button onclick="calcCost()">
+Calculate Cost
+</button>
+
+<p id="cost"></p>
+
+<hr>
+
+<h2>🏪 Add Your Garage</h2>
+
+<input type="text"
+id="garageName"
+placeholder="Garage Name">
+
+<input type="text"
+id="phone"
+placeholder="Phone Number">
+
+<button onclick="addGarage()">
+➕ Add Garage
+</button>
+
+<div id="garageList"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
 
 <script>
 
-    let map;
-    let marker;
+let map;
+let marker;
 
-    // Live Time
-    setInterval(() => {
-        document.getElementById("time").innerHTML =
-            "🕒 " + new Date().toLocaleString();
-    }, 1000);
+const mechanics = [
+{
+name:"Ravi Auto Service",
+rating:"4.8",
+distance:"1.2 KM",
+phone:"9554230944",
+cost:"₹300 - ₹500"
+},
+{
+name:"Sharma Garage",
+rating:"4.6",
+distance:"2.5 KM",
+phone:"9554230945",
+cost:"₹400 - ₹700"
+}
+];
 
-    // Emergency Call
-    function callEmergency() {
-        window.location.href = "tel:112";
-    }
+setInterval(()=>{
+document.getElementById("time").innerHTML=
+"🕒 "+new Date().toLocaleString();
+},1000);
 
-    // Show Map
-    function showMap(lat, lng) {
+function toggleDarkMode(){
+document.body.classList.toggle("dark");
+}
 
-        if (!map) {
+function callEmergency(){
+window.location.href="tel:112";
+}
 
-            map = L.map('map').setView([lat, lng], 15);
+function showMap(lat,lng){
 
-            L.tileLayer(
-                'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                {
-                    attribution: '© OpenStreetMap'
-                }
-            ).addTo(map);
+if(!map){
 
-            L.Control.geocoder({
-                defaultMarkGeocode: true
-            }).addTo(map);
-        }
+map=L.map('map').setView([lat,lng],15);
 
-        if (marker) {
-            marker.remove();
-        }
+L.tileLayer(
+'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+{
+attribution:'© OpenStreetMap'
+}
+).addTo(map);
 
-        marker = L.marker([lat, lng])
-            .addTo(map)
-            .bindPopup("📍 You are here")
-            .openPopup();
+L.Control.geocoder().addTo(map);
+}
 
-        map.setView([lat, lng], 15);
-    }
+if(marker){
+marker.remove();
+}
 
-    // Get User Location
-    function getLocation() {
+marker=L.marker([lat,lng])
+.addTo(map)
+.bindPopup("📍 You are here")
+.openPopup();
 
-        navigator.geolocation.getCurrentPosition(
+map.setView([lat,lng],15);
+}
 
-            function(position) {
+function getLocation(){
 
-                const lat = position.coords.latitude;
-                const lng = position.coords.longitude;
+navigator.geolocation.getCurrentPosition(
 
-                document.getElementById("location").innerHTML =
-                    "Latitude: " + lat +
-                    "<br>Longitude: " + lng;
+function(position){
 
-                showMap(lat, lng);
-            },
+const lat=position.coords.latitude;
+const lng=position.coords.longitude;
 
-            function() {
-                alert("❌ Location permission denied");
-            }
+document.getElementById("location").innerHTML=
+"Latitude: "+lat+"<br>Longitude: "+lng;
 
-        );
-    }
+showMap(lat,lng);
+},
 
-    // Find Mechanics
-    function findMechanic() {
+function(){
+alert("Location permission denied");
+}
 
-        const vehicle =
-            document.getElementById("vehicle").value;
+);
+}
 
-        const problem =
-            document.getElementById("problem").value;
+function findMechanic(){
 
-        document.getElementById("loading").style.display = "block";
+let vehicle=document.getElementById("vehicle").value;
+let problem=document.getElementById("problem").value;
+let search=document.getElementById("searchBox").value.toLowerCase();
 
-        setTimeout(() => {
+document.getElementById("loading").style.display="block";
 
-            document.getElementById("loading").style.display = "none";
+setTimeout(()=>{
 
-            document.getElementById("result").innerHTML = `
+document.getElementById("loading").style.display="none";
 
-            <h2>🔧 Nearby Mechanics</h2>
+let html="<h2>🔧 Nearby Mechanics</h2>";
 
-            <div class="card">
+mechanics.forEach(m=>{
 
-                <img src="https://images.unsplash.com/photo-1487754180451-c456f719a1fc?w=600">
+if(
+search==="" ||
+m.name.toLowerCase().includes(search)
+){
 
-                <h3>Ravi Auto Service</h3>
+let hour=new Date().getHours();
 
-                <p>⭐ Rating: 4.8/5</p>
-                <p>🚗 Vehicle: ${vehicle}</p>
-                <p>⚠️ Problem: ${problem}</p>
-                <p>📍 Distance: 1.2 KM</p>
-                <p>⏱ Arrival Time: 15 Minutes</p>
-                <p>💰 Estimated Cost: ₹300 - ₹500</p>
+let status=
+(hour>=8 && hour<=20)
+? "🟢 Open"
+: "🔴 Closed";
 
-               <div style="display:flex;gap:10px;flex-wrap:wrap;">
+html+=`
+<div class="card">
 
-    <a href="tel:9554230944">
-        <button>📞 Call</button>
-    </a>
+<h3>${m.name}</h3>
 
-    <a href="https://wa.me/9554230944" target="_blank">
-        <button>💬 WhatsApp</button>
-    </a>
+<p>⭐ Rating: ${m.rating}/5</p>
+<p>${status}</p>
+<p>🚗 Vehicle: ${vehicle}</p>
+<p>⚠️ Problem: ${problem}</p>
+<p>📍 Distance: ${m.distance}</p>
+<p>💰 Estimated Cost: ${m.cost}</p>
 
-    <a href="https://maps.google.com/?q=25.3176,82.9739" target="_blank">
-        <button>📍 Direction</button>
-    </a>
+<a href="tel:${m.phone}">
+<button>📞 Call</button>
+</a>
+
+<a href="https://wa.me/${m.phone}"
+target="_blank">
+<button>💬 WhatsApp</button>
+</a>
+
+</div>
+`;
+}
+
+});
+
+document.getElementById("result").innerHTML=html;
+
+},2000);
+}
+
+function calcCost(){
+
+let km=document.getElementById("km").value;
+
+let cost=200+(km*10);
+
+document.getElementById("cost").innerHTML=
+"Estimated Cost: ₹"+cost;
+}
+
+function addGarage(){
+
+let name=
+document.getElementById("garageName").value;
+
+let phone=
+document.getElementById("phone").value;
+
+document.getElementById("garageList").innerHTML+=`
+
+<div class="card">
+
+<h3>${name}</h3>
+
+<p>📞 ${phone}</p>
 
 </div>
 
-            </div>
-
-            <div class="card">
-
-                <img src="https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=600">
-
-                <h3>Sharma Garage</h3>
-
-                <p>⭐ Rating: 4.6/5</p>
-                <p>🚗 Vehicle: ${vehicle}</p>
-                <p>⚠️ Problem: ${problem}</p>
-                <p>📍 Distance: 2.5 KM</p>
-                <p>⏱ Arrival Time: 20 Minutes</p>
-                <p>💰 Estimated Cost: ₹400 - ₹700</p>
-
-                <a href="tel:954230944">
-                    <button>📞 Call</button>
-                </a>
-
-            </div>
-
-            `;
-        }, 2000);
-    }
+`;
+}
 
 </script>
-```
 
 </body>
 </html>
