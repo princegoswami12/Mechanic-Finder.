@@ -4,16 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<title>Mechanic Finder Pro</title>
+
+<link rel="stylesheet" href="style.css">
+
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css">
 
-<style>
-#map{height:300px;width:100%;margin-top:10px;}
-.card{border:1px solid #ccc;padding:10px;margin:10px;}
-button{padding:5px 10px;margin:5px;}
-</style>
-
-<!-- FIREBASE -->
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -32,32 +28,25 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// 🔥 LIVE GPS SEND
-navigator.geolocation.watchPosition(async (pos) => {
+// 🚀 LIVE LOCATION SEND
+navigator.geolocation.watchPosition(async (pos)=>{
   const lat = pos.coords.latitude;
   const lng = pos.coords.longitude;
 
-  try {
-    await updateDoc(doc(db, "mechanics", "mechanic1"), {
-      lat,
-      lng
-    });
-  } catch(e){
-    console.log("Firebase error:", e);
-  }
+  await updateDoc(doc(db,"mechanics","mechanic1"),{
+    lat,lng
+  });
 });
 
-// 🔥 LIVE LISTENER
-onSnapshot(doc(db, "mechanics", "mechanic1"), (snap) => {
+// 👀 LIVE LISTENER
+onSnapshot(doc(db,"mechanics","mechanic1"),(snap)=>{
   const data = snap.data();
   if(!data) return;
 
   document.getElementById("location").innerHTML =
-  "📍 LIVE:<br>Lat: " + data.lat + "<br>Lng: " + data.lng;
+  "📍 LIVE LOCATION: "+data.lat+" , "+data.lng;
 
-  if(window.showMap){
-    window.showMap(data.lat, data.lng);
-  }
+  showMap(data.lat,data.lng);
 });
 
 </script>
@@ -66,13 +55,16 @@ onSnapshot(doc(db, "mechanics", "mechanic1"), (snap) => {
 
 <body>
 
-<h2>🔧 Mechanic Finder Pro</h2>
+<div class="header">
+<h1>🔧 Mechanic Finder Pro</h1>
+<p>Live Tracking System</p>
+</div>
 
 <p id="location">Location not detected</p>
 
 <div id="map"></div>
 
-<input type="text" id="searchBox" placeholder="Search mechanic">
+<input type="text" id="searchBox" placeholder="Search Mechanic">
 
 <select id="vehicle">
 <option>Bike</option>
@@ -84,16 +76,19 @@ onSnapshot(doc(db, "mechanics", "mechanic1"), (snap) => {
 <option>Battery</option>
 </select>
 
-<button onclick="findMechanic()">Search</button>
+<button onclick="findMechanic()">Search Mechanic</button>
 
 <div id="result"></div>
 
-<hr>
+<h2>💰 Cost</h2>
+<input type="number" id="km" placeholder="KM">
+<button onclick="calcCost()">Calculate</button>
+<p id="cost"></p>
 
-<input type="text" id="garageName" placeholder="Garage Name">
+<h2>🏪 Garage</h2>
+<input type="text" id="garageName" placeholder="Name">
 <input type="text" id="phone" placeholder="Phone">
-
-<button onclick="addGarage()">Add Garage</button>
+<button onclick="addGarage()">Add</button>
 
 <div id="garageList"></div>
 
@@ -101,12 +96,10 @@ onSnapshot(doc(db, "mechanics", "mechanic1"), (snap) => {
 
 <script>
 
+// 🗺️ MAP
 let map;
 let marker;
-let routeLine;
-let routePoints = [];
 
-// 🗺️ MAP
 function showMap(lat,lng){
 
 if(!map){
@@ -117,9 +110,7 @@ attribution:'© OpenStreetMap'
 }).addTo(map);
 }
 
-if(marker){
-marker.remove();
-}
+if(marker) marker.remove();
 
 marker = L.marker([lat,lng]).addTo(map)
 .bindPopup("Live Location").openPopup();
@@ -129,7 +120,7 @@ map.setView([lat,lng],15);
 
 window.showMap = showMap;
 
-// 🔥 SEARCH DATA
+// 🔧 DATA
 const mechanics = [
 {
 name:"Ravi Auto Service",
@@ -148,13 +139,13 @@ let search = document.getElementById("searchBox").value.toLowerCase();
 let vehicle = document.getElementById("vehicle").value;
 let problem = document.getElementById("problem").value;
 
-let html = "";
+let html="";
 
-mechanics.forEach(m => {
+mechanics.forEach(m=>{
 
-if(search === "" || m.name.toLowerCase().includes(search)){
+if(search==="" || m.name.toLowerCase().includes(search)){
 
-html += `
+html+=`
 <div class="card">
 <img src="${m.image}" width="100%">
 <h3>${m.name}</h3>
@@ -162,14 +153,13 @@ html += `
 <p>🚗 ${vehicle}</p>
 <p>⚠️ ${problem}</p>
 <p>📍 ${m.distance}</p>
-<p>💰 ${m.cost}</p>
 
 <a href="tel:${m.phone}">
-<button>📞 Call</button>
+<button>Call</button>
 </a>
 
-<a href="https://wa.me/91${m.phone}" target="_blank">
-<button>💬 WhatsApp</button>
+<a href="https://wa.me/91${m.phone}">
+<button>WhatsApp</button>
 </a>
 
 </div>
@@ -178,23 +168,29 @@ html += `
 
 });
 
-document.getElementById("result").innerHTML = html;
+document.getElementById("result").innerHTML=html;
 }
 
 window.findMechanic = findMechanic;
 
-// ➕ ADD GARAGE
-function addGarage(){
-let name = document.getElementById("garageName").value;
-let phone = document.getElementById("phone").value;
+// 💰 COST
+function calcCost(){
+let km=document.getElementById("km").value;
+document.getElementById("cost").innerHTML="₹"+(200+km*10);
+}
+window.calcCost = calcCost;
 
-document.getElementById("garageList").innerHTML += `
+// 🏪 GARAGE
+function addGarage(){
+let name=document.getElementById("garageName").value;
+let phone=document.getElementById("phone").value;
+
+document.getElementById("garageList").innerHTML+=`
 <div class="card">
 <h3>${name}</h3>
 <p>${phone}</p>
 </div>`;
 }
-
 window.addGarage = addGarage;
 
 </script>
