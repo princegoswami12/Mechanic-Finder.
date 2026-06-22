@@ -135,17 +135,18 @@ let map;
 let marker;
 let routeLine;
 let routePoints = [];
-  const mechanics = [
+
+const mechanics = [
 {
   name: "Ravi Auto Service",
   rating: "4.8",
   distance: "1.2 KM",
   phone: "9554230944",
   cost: "₹300 - ₹500",
-  image: "<img src="""https://images.unsplash.com/photo-1487754180451-c456f719a1fc?w=600"
-  
+  image: "https://images.unsplash.com/photo-1487754180451-c456f719a1fc?w=600"
 }
 ];
+
 
 // 🗺️ MAP FUNCTION
 function showMap(lat,lng){
@@ -236,7 +237,17 @@ if(search==="" || m.name.toLowerCase().includes(search)){
 
 html+=`
 <div class="card">
-<img src="${m.image}">
+
+<img src="${m.image}"
+style="
+width:100%;
+height:220px;
+object-fit:cover;
+border-radius:15px;
+margin-bottom:10px;
+box-shadow:0 4px 10px rgba(0,0,0,0.3);
+">
+
 <h3>${m.name}</h3>
 <p>⭐ ${m.rating}</p>
 <p>🚗 ${vehicle}</p>
@@ -248,7 +259,7 @@ html+=`
 <button>📞 Call</button>
 </a>
 
-<a href="https://wa.me/${"91" + m.phone}" target="_blank">
+<a href="https://wa.me/${"91"+m.phone}" target="_blank">
 <button>💬 WhatsApp</button>
 </a>
 
